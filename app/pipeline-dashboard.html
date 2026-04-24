@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Pipeline | Rapid Circle</title>
+    <link rel="stylesheet" href="/vendor/fonts.css">
+    <script src="/vendor/tailwindcss.js"></script>
+    <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#0050A0', light: '#00AEEF', dark: '#003A75' },
+            accent: '#F15A24',
+            neutral: '#FFFFFF',
+            'gray-50': '#F9FAFB',
+            'gray-100': '#F3F4F6',
+            'gray-200': '#E5E7EB',
+            'gray-300': '#D1D5DB',
+            'gray-500': '#6B7280',
+            'gray-700': '#374151',
+            'gray-900': '#111827',
+            success: '#16A34A',
+            'success-light': '#DCFCE7',
+            error: '#DC2626',
+            'error-light': '#FEE2E2',
+            warning: '#D97706',
+            'warning-light': '#FFFBEB',
+            info: '#2563EB',
+            'info-light': '#EFF6FF'
+          },
+          fontFamily: {
+            heading: ['"DM Sans"', 'system-ui', 'sans-serif'],
+            body: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+    </script>
+</head>
+<body class="font-body antialiased min-h-screen bg-gray-50 flex flex-col">
+    <!-- Top Navigation -->
+    <header class="border-b border-gray-200 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        <div class="flex items-center gap-6">
+          <a href="/app/pipeline-dashboard.html" class="flex items-center gap-2">
+            <img src="/docs/assets/logo.jpg" alt="Rapidcircle Logo" class="h-8 w-auto object-contain" />
+          </a>
+          <nav class="hidden md:flex items-center gap-4 text-sm font-medium">
+            <a href="/app/pipeline-dashboard.html" class="border-b-2 border-primary text-gray-900 pb-3">Weekly Pipeline</a>
+          </nav>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="hidden sm:inline text-sm text-gray-500" id="current-user-name"></span>
+          <button id="logout-button" class="text-sm text-gray-600 hover:text-gray-900">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1">
+      <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+        <!-- Page Header with Week Selector -->
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900 font-heading">Weekly Pipeline Change</h1>
+            <p class="text-gray-500 mt-1 text-sm">Analyze open weighted pipeline movements by opportunity type.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <div>
+              <label for="week-start" class="block text-xs font-medium text-gray-700 mb-1">Reporting week (start date)</label>
+              <input id="week-start" type="date" class="w-full max-w-xs border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
+            </div>
+            <button id="apply-week" class="inline-flex items-center justify-center bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1 focus:ring-offset-gray-50 transition">
+              Apply
+            </button>
+            <button id="jump-latest-week" class="hidden inline-flex items-center justify-center border border-gray-300 text-gray-700 bg-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:ring-offset-1 focus:ring-offset-white transition">
+              ↩ Latest week
+            </button>
+          </div>
+        </div>
+
+        <!-- Status Message (errors / info) -->
+        <div id="status-message" class="hidden border rounded-lg px-4 py-3 text-sm"></div>
+
+        <!-- Loading Indicator -->
+        <div id="loading-indicator" class="hidden flex items-center justify-center py-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-2 border-t-primary"></div>
+        </div>
+
+        <!-- Summary Cards -->
+        <section>
+          <h2 class="sr-only">Pipeline Summary</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- System Integration (CE) Card -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-semibold text-gray-900 font-heading">System Integration (CE)</h3>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">CE</span>
+              </div>
+              <div class="space-y-2 text-sm text-gray-500">
+                <div class="flex justify-between"><span>Starting Value</span><span class="text-gray-700 font-medium" id="ce-start">—</span></div>
+                <div class="flex justify-between"><span>Ending Value</span><span class="text-gray-700 font-medium" id="ce-end">—</span></div>
+                <div class="flex justify-between border-t border-gray-100 pt-2"><span class="font-medium text-gray-700">Net Change</span><span class="font-semibold text-gray-900" id="ce-net">—</span></div>
+              </div>
+            </div>
+
+            <!-- Managed Services Card -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-semibold text-gray-900 font-heading">Managed Services</h3>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-light/10 text-primary-dark">MS</span>
+              </div>
+              <div class="space-y-2 text-sm text-gray-500">
+                <div class="flex justify-between"><span>Starting Value</span><span class="text-gray-700 font-medium" id="ms-start">—</span></div>
+                <div class="flex justify-between"><span>Ending Value</span><span class="text-gray-700 font-medium" id="ms-end">—</span></div>
+                <div class="flex justify-between border-t border-gray-100 pt-2"><span class="font-medium text-gray-700">Net Change</span><span class="font-semibold text-gray-900" id="ms-net">—</span></div>
+              </div>
+            </div>
+
+            <!-- Total Card -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-sm font-semibold text-gray-900 font-heading">Total Pipeline</h3>
+              </div>
+              <div class="space-y-2 text-sm text-gray-500">
+                <div class="flex justify-between"><span>Starting Value</span><span class="text-gray-700 font-medium" id="total-start">—</span></div>
+                <div class="flex justify-between"><span>Ending Value</span><span class="text-gray-700 font-medium" id="total-end">—</span></div>
+                <div class="flex justify-between border-t border-gray-100 pt-2"><span class="font-medium text-gray-700">Net Change</span><span class="font-semibold text-gray-900" id="total-net">—</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Movement Breakdown -->
+        <section>
+          <h2 class="text-lg font-semibold text-gray-900 font-heading mb-4">Movement Breakdown</h2>
+
+          <div class="space-y-6" id="movement-breakdown-container">
+            <!-- Movement cards rendered dynamically by pipelineDashboard.js -->
+          </div>
+        </section>
+
+        <!-- Empty State (shown when no week selected or no data) -->
+        <section id="empty-state">
+          <div class="text-center py-12">
+            <p class="text-gray-500 text-lg font-medium">No data for this week</p>
+            <p class="text-gray-400 mt-1 text-sm">Select a different week or seed demo data to view pipeline changes.</p>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <script src="/js/authService.js"></script>
+    <script src="/app/app.js"></script>
+    <script src="/app/js/pipelineDashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Demo</title>
+    <link rel="stylesheet" href="/vendor/fonts.css">
+    <script src="/vendor/tailwindcss.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        body: ['Inter', 'system-ui', 'sans-serif'],
+                        heading: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#0066CC',
+                        secondary: '#00B4D8',
+                        dark: '#1A1A1A',
+                        light: '#F8F9FA'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .persona-card {
+            transition: all 0.2s ease;
+        }
+        .persona-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .persona-card.selected {
+            ring: 2px solid #0066CC;
+            border-color: #0066CC;
+        }
+    </style>
+</head>
+<body class="font-body antialiased bg-light min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="/" class="text-2xl font-bold text-primary">Demo Portal</a>
+                <span class="text-sm text-gray-500">Mock Authentication</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 py-12">
+        <!-- Login Form Section -->
+        <div id="loginSection" class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h1 class="text-3xl font-bold text-dark mb-2 font-heading">Sign In</h1>
+            <p class="text-gray-600 mb-6">Enter your email or select a demo persona below</p>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+            </div>
+
+            <!-- Email Warning -->
+            <div id="emailWarning" class="hidden bg-amber-50 border border-amber-300 text-amber-800 px-4 py-3 rounded mb-4 text-sm">
+                <strong>⚠ Test Portal:</strong> This login uses pre-configured demo accounts.
+                Select a persona below, or click <strong>"Seed Users"</strong> first to create them.
+            </div>
+
+            <!-- Email Form -->
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" id="email" name="email" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                        placeholder="Enter your email">
+                </div>
+                <button type="submit" id="loginBtn"
+                    class="w-full bg-primary text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    Continue
+                </button>
+            </form>
+        </div>
+
+        <!-- MFA Section (hidden initially) -->
+        <div id="mfaSection" class="hidden bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h2 class="text-2xl font-bold text-dark mb-2 font-heading">Verify Your Identity</h2>
+            <p class="text-gray-600 mb-6">Enter the verification code sent to your device</p>
+
+            <!-- MFA Hint -->
+            <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4">
+                <strong>Demo Hint:</strong> Use code <code class="bg-blue-100 px-2 py-1 rounded">123456</code>
+            </div>
+
+            <form id="mfaForm" class="space-y-4">
+                <div>
+                    <label for="mfaCode" class="block text-sm font-medium text-gray-700 mb-1">Verification Code</label>
+                    <input type="text" id="mfaCode" name="mfaCode" required maxlength="6"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-center text-2xl tracking-widest"
+                        placeholder="000000">
+                </div>
+                <button type="submit" id="mfaBtn"
+                    class="w-full bg-primary text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                    Verify
+                </button>
+                <button type="button" id="backToLogin"
+                    class="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-200 transition">
+                    Back to Login
+                </button>
+            </form>
+        </div>
+
+        <!-- Demo Personas Section -->
+        <div id="personasSection" class="bg-white rounded-lg shadow-lg p-8">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-dark font-heading">Demo Personas</h2>
+                    <p class="text-gray-600">Click a persona to sign in as that user</p>
+                </div>
+                <button id="seedBtn"
+                    class="text-sm bg-gray-100 text-gray-700 px-4 py-2 rounded hover:bg-gray-200 transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    Seed Users
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="personasLoading" class="text-center py-8">
+                <div class="animate-pulse text-gray-400">Loading personas...</div>
+            </div>
+
+            <!-- No Personas Message -->
+            <div id="noPersonas" class="hidden text-center py-8">
+                <p class="text-gray-500 mb-4">No demo users found. Click "Seed Users" to create them.</p>
+            </div>
+
+            <!-- Personas Grid -->
+            <div id="personasGrid" class="hidden grid md:grid-cols-2 gap-4">
+                <!-- Personas will be inserted here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-8 text-gray-500 text-sm">
+        <p>This is a demo authentication system. Do not use for production.</p>
+    </footer>
+
+    <script src="/js/authService.js"></script>
+    <script>
+        /**
+         * Login page controller
+         */
+        (async function() {
+            // DOM Elements
+            const loginSection = document.getElementById('loginSection');
+            const mfaSection = document.getElementById('mfaSection');
+            const personasSection = document.getElementById('personasSection');
+            const loginForm = document.getElementById('loginForm');
+            const mfaForm = document.getElementById('mfaForm');
+            const emailInput = document.getElementById('email');
+            const mfaCodeInput = document.getElementById('mfaCode');
+            const errorMessage = document.getElementById('errorMessage');
+            const loginBtn = document.getElementById('loginBtn');
+            const mfaBtn = document.getElementById('mfaBtn');
+            const backToLoginBtn = document.getElementById('backToLogin');
+            const seedBtn = document.getElementById('seedBtn');
+            const personasLoading = document.getElementById('personasLoading');
+            const noPersonas = document.getElementById('noPersonas');
+            const personasGrid = document.getElementById('personasGrid');
+
+            // Initialize auth service
+            await authService.initialize();
+
+            // Check if already authenticated
+            const authState = await authService.getCurrentUser();
+            if (authState.isAuthenticated) {
+                window.location.href = '/app/pipeline-dashboard.html';
+                return;
+            }
+
+            // If not in mock mode, redirect to SWA login
+            if (!authService.isMockAuth()) {
+                window.location.href = authService.getAuthMode().loginUrl;
+                return;
+            }
+
+            // Track if users exist for button state
+            let hasUsers = false;
+
+            /**
+             * Update seed button based on whether users exist
+             * @param {boolean} usersExist
+             */
+            function updateSeedButton(usersExist) {
+                hasUsers = usersExist;
+                if (usersExist) {
+                    seedBtn.innerHTML = `
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        Reset Users
+                    `;
+                } else {
+                    seedBtn.innerHTML = `
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        Seed Users
+                    `;
+                }
+            }
+
+            // Load personas
+            await loadPersonas();
+
+            /**
+             * Show error message
+             * @param {string} message
+             */
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.classList.remove('hidden');
+            }
+
+            /**
+             * Hide error message
+             */
+            function hideError() {
+                errorMessage.classList.add('hidden');
+            }
+
+            /**
+             * Load and display personas
+             */
+            async function loadPersonas() {
+                personasLoading.classList.remove('hidden');
+                personasGrid.classList.add('hidden');
+                noPersonas.classList.add('hidden');
+
+                const personas = await authService.getPersonas();
+
+                personasLoading.classList.add('hidden');
+
+                // Update button based on whether users exist
+                updateSeedButton(personas.length > 0);
+
+                if (personas.length === 0) {
+                    noPersonas.classList.remove('hidden');
+                    return;
+                }
+
+                personasGrid.innerHTML = '';
+                personas.forEach(persona => {
+                    const card = document.createElement('button');
+                    card.className = 'persona-card text-left p-4 border border-gray-200 rounded-lg hover:border-primary';
+                    card.innerHTML = `
+                        <div class="flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                                ${persona.fullName.charAt(0)}
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-semibold text-dark">${escapeHtml(persona.fullName)}</div>
+                                <div class="text-sm text-gray-500">${escapeHtml(persona.email)}</div>
+                                <div class="text-xs text-gray-400 mt-1">${escapeHtml(persona.description)}</div>
+                                ${persona.isAdmin ? '<span class="inline-block mt-1 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">Admin</span>' : ''}
+                            </div>
+                        </div>
+                    `;
+                    card.addEventListener('click', () => {
+                        emailInput.value = persona.email;
+                        loginForm.dispatchEvent(new Event('submit'));
+                    });
+                    personasGrid.appendChild(card);
+                });
+
+                personasGrid.classList.remove('hidden');
+            }
+
+            /**
+             * Escape HTML to prevent XSS
+             * @param {string} str
+             * @returns {string}
+             */
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            // Show warning when user focuses on email input
+            const emailWarning = document.getElementById('emailWarning');
+            emailInput.addEventListener('focus', () => {
+                emailWarning.classList.remove('hidden');
+            });
+
+            // Login form submit
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                hideError();
+
+                const email = emailInput.value.trim();
+                if (!email) {
+                    showError('Please enter an email address');
+                    return;
+                }
+
+                loginBtn.disabled = true;
+                loginBtn.textContent = 'Signing in...';
+
+                const result = await authService.login(email);
+
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Continue';
+
+                if (!result.success) {
+                    showError(result.error);
+                    return;
+                }
+
+                if (result.requiresMfa) {
+                    // Show MFA section
+                    loginSection.classList.add('hidden');
+                    personasSection.classList.add('hidden');
+                    mfaSection.classList.remove('hidden');
+                    mfaCodeInput.focus();
+                }
+            });
+
+            // Auto-submit MFA when all 6 digits are entered
+            mfaCodeInput.addEventListener('input', () => {
+                const code = mfaCodeInput.value.trim();
+                if (code.length === 6) {
+                    mfaForm.dispatchEvent(new Event('submit'));
+                }
+            });
+
+            // MFA form submit
+            mfaForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                hideError();
+
+                const code = mfaCodeInput.value.trim();
+                if (!code) {
+                    showError('Please enter the verification code');
+                    return;
+                }
+
+                mfaBtn.disabled = true;
+                mfaBtn.textContent = 'Verifying...';
+
+                const result = await authService.verifyMfa(code);
+
+                mfaBtn.disabled = false;
+                mfaBtn.textContent = 'Verify';
+
+                if (!result.success) {
+                    showError(result.error);
+                    return;
+                }
+
+                // Success! Redirect to app
+                window.location.href = '/app/pipeline-dashboard.html';
+            });
+
+            // Back to login button
+            backToLoginBtn.addEventListener('click', () => {
+                mfaSection.classList.add('hidden');
+                loginSection.classList.remove('hidden');
+                personasSection.classList.remove('hidden');
+                mfaCodeInput.value = '';
+                hideError();
+            });
+
+            // Seed/Reset data button
+            seedBtn.addEventListener('click', async () => {
+                seedBtn.disabled = true;
+                const originalHtml = seedBtn.innerHTML;
+                seedBtn.innerHTML = '<span class="animate-pulse">Processing...</span>';
+
+                let result;
+                if (hasUsers) {
+                    // Reset users
+                    result = await authService.resetDemoData();
+                } else {
+                    // Seed users
+                    result = await authService.seedDemoData();
+                }
+
+                seedBtn.disabled = false;
+
+                if (result.success) {
+                    await loadPersonas();
+                } else {
+                    seedBtn.innerHTML = originalHtml;
+                    showError(result.error || 'Failed to process request');
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

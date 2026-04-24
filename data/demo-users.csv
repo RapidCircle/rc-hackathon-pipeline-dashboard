@@ -1,0 +1,8 @@
+UserId,Email,FullName,Status,IsSystemAdmin,Roles,PersonaDescription
+user-admin,admin@demo.example.com,System Admin,Active,true,"anonymous,authenticated,admin",System administrator with full access to all pipeline data and settings
+user-001,sarah.mitchell@example.com,Sarah Mitchell,Active,false,"anonymous,authenticated,manager",Sales Leader — System Integration (CE) focus
+user-002,james.chen@example.com,James Chen,Active,false,"anonymous,authenticated,manager",Sales Leader — Managed Services focus
+user-003,rachel.thompson@example.com,Rachel Thompson,Active,false,"anonymous,authenticated",Sales Ops / CRM Analyst — cross-type pipeline reporting
+user-004,tom.harrison@example.com,Tom Harrison,Active,false,"anonymous,authenticated",Sales Rep — System Integration (CE) opportunities
+user-005,lisa.wong@acmecorp.example.com,Lisa Wong,Active,false,"anonymous,authenticated",Sales Rep — Managed Services opportunities
+user-suspended,suspended.user@example.com,Suspended User,Suspended,false,"anonymous,authenticated",Suspended account (cannot login)
