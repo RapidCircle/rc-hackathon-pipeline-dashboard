@@ -70,7 +70,8 @@ public class CrmSyncService
         var today = DateTime.UtcNow.Date;
         var weekStart = today.AddDays(-(int)today.DayOfWeek + (int)DayOfWeek.Monday);
         if (today.DayOfWeek == DayOfWeek.Sunday) weekStart = weekStart.AddDays(-7);
-        var weekEnd = weekStart.AddDays(6);
+        weekStart = DateTime.SpecifyKind(weekStart, DateTimeKind.Utc);
+        var weekEnd = DateTime.SpecifyKind(weekStart.AddDays(6), DateTimeKind.Utc);
 
         _logger.LogInformation("Processing pipeline for week: {WeekStart} to {WeekEnd}", weekStart.ToString("yyyy-MM-dd"), weekEnd.ToString("yyyy-MM-dd"));
 
@@ -97,7 +98,9 @@ public class CrmSyncService
                 WeightedRevenue = opp.WeightedRevenue,
                 NominalValue = opp.EstimatedValue,
                 Probability = opp.Probability,
-                CloseDate = opp.EstimatedCloseDate,
+                CloseDate = opp.EstimatedCloseDate.HasValue ? DateTime.SpecifyKind(opp.EstimatedCloseDate.Value, DateTimeKind.Utc) : null,
+                CreatedInSourceAtUtc = DateTime.UtcNow,
+                LastModifiedInSourceAtUtc = DateTime.UtcNow,
                 LastSyncedAtUtc = DateTime.UtcNow
             };
             await _storage.OpportunityLookup.UpsertEntityAsync(lookup, TableUpdateMode.Replace, ct);
@@ -164,7 +167,7 @@ public class CrmSyncService
                             ? (acc.TryGetProperty("name", out var an) ? an.GetString() ?? "" : "")
                             : "",
                         EstimatedCloseDate = item.TryGetProperty("estimatedclosedate", out var ecd) && ecd.ValueKind == JsonValueKind.String
-                            ? DateTime.TryParse(ecd.GetString(), out var dt) ? dt : (DateTime?)null
+                            ? DateTime.TryParse(ecd.GetString(), out var dt) ? DateTime.SpecifyKind(dt, DateTimeKind.Utc) : (DateTime?)null
                             : null,
                     };
 
