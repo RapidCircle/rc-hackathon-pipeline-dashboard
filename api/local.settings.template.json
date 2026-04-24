@@ -3,10 +3,18 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "STORAGE": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;"
+    "STORAGE": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;",
+    "CRM_URL": "https://org597d21d4.crm.dynamics.com",
+    "CRM_TENANT_ID": "",
+    "CRM_CLIENT_ID": "",
+    "CRM_CLIENT_SECRET": ""
   },
   "_comments": {
     "AzureWebJobsStorage": "Required by Functions runtime. Use 'UseDevelopmentStorage=true' for Azurite.",
-    "STORAGE": "Connection string for Table/Blob storage. For local dev with Azurite, use the full connection string, this is publicly known."
+    "STORAGE": "Connection string for Table/Blob storage. For local dev with Azurite, use the full connection string, this is publicly known.",
+    "CRM_URL": "Dynamics 365 CRM URL. Already provisioned.",
+    "CRM_TENANT_ID": "Azure AD tenant ID. Already set in Azure SWA app settings for production.",
+    "CRM_CLIENT_ID": "App Registration client ID for CRM access. Already set in Azure SWA app settings.",
+    "CRM_CLIENT_SECRET": "App Registration client secret. Already set in Azure SWA app settings."
   }
 }

@@ -31,6 +31,7 @@ if (mockAuthType != null)
 builder.Services.AddSingleton<TableStorageContext>();
 builder.Services.AddSingleton<PipelineReportService>();
 builder.Services.AddSingleton<AppDataSeeder>();
+builder.Services.AddHttpClient<CrmSyncService>();
 
 builder.Services
     .AddApplicationInsightsTelemetryWorkerService()

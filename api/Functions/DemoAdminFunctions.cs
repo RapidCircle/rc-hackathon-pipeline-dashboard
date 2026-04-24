@@ -16,6 +16,7 @@ public class DemoAdminFunctions
 {
     private readonly SampleDataSeeder _seeder;
     private readonly AppDataSeeder _appDataSeeder;
+    private readonly CrmSyncService _crmSyncService;
     private readonly IAuthProvider _authProvider;
     private readonly ILogger<DemoAdminFunctions> _logger;
 
@@ -24,10 +25,11 @@ public class DemoAdminFunctions
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public DemoAdminFunctions(SampleDataSeeder seeder, AppDataSeeder appDataSeeder, IAuthProvider authProvider, ILogger<DemoAdminFunctions> logger)
+    public DemoAdminFunctions(SampleDataSeeder seeder, AppDataSeeder appDataSeeder, CrmSyncService crmSyncService, IAuthProvider authProvider, ILogger<DemoAdminFunctions> logger)
     {
         _seeder = seeder;
         _appDataSeeder = appDataSeeder;
+        _crmSyncService = crmSyncService;
         _authProvider = authProvider;
         _logger = logger;
     }
@@ -115,6 +117,33 @@ public class DemoAdminFunctions
             _logger.LogError(ex, "Failed to reset demo data");
             return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, 
                 "Failed to reset demo data: " + ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// POST /api/demo/crm-sync — Sync pipeline data from Dynamics 365 CRM.
+    /// Fetches all opportunities with new_OpportunityType set and generates pipeline snapshots.
+    /// </summary>
+    [Function("CrmSync")]
+    public async Task<HttpResponseData> CrmSync(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "demo/crm-sync")] HttpRequestData req)
+    {
+        try
+        {
+            _logger.LogInformation("Starting CRM sync...");
+            var result = await _crmSyncService.SyncFromCrmAsync();
+
+            if (!result.Success)
+            {
+                return await CreateErrorResponse(req, HttpStatusCode.BadRequest, result.Error ?? "CRM sync failed");
+            }
+
+            return await CreateJsonResponse(req, HttpStatusCode.OK, result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "CRM sync failed");
+            return await CreateErrorResponse(req, HttpStatusCode.InternalServerError, "CRM sync failed: " + ex.Message);
         }
     }
 
