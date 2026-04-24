@@ -76,11 +76,17 @@
             </p>
         </div>
 
-        <!-- Seed Test Data Button -->
-        <button id="seedBtn" class="inline-flex items-center justify-center bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1 focus:ring-offset-white disabled:bg-gray-300 disabled:cursor-not-allowed transition mb-3 w-full sm:w-auto">
-            Seed Test Data
-        </button>
-        <p class="text-xs text-gray-500 mb-6">Seeds demo users and pipeline data for testing</p>
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-center mb-3">
+            <button id="seedBtn" class="inline-flex items-center justify-center bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:bg-gray-300 disabled:cursor-not-allowed transition">
+                Seed Test Data
+            </button>
+            <button id="crmSyncBtn" class="inline-flex items-center justify-center bg-success text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-success/50 disabled:bg-gray-300 disabled:cursor-not-allowed transition">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Sync from CRM
+            </button>
+        </div>
+        <p class="text-xs text-gray-500 mb-6">Seed loads demo data (Feb 2026) · CRM Sync pulls live data from Dynamics 365</p>
 
         <!-- Login Button -->
         <a href="/login.html" class="inline-flex items-center justify-center bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-1 focus:ring-offset-white transition">
@@ -132,6 +138,30 @@
                 } else {
                     showToast('error', 'Error', result.error || 'Failed to seed test data.');
                 }
+            });
+
+            // CRM Sync button
+            var crmSyncBtn = document.getElementById('crmSyncBtn');
+            crmSyncBtn.addEventListener('click', async function() {
+                crmSyncBtn.disabled = true;
+                crmSyncBtn.textContent = 'Syncing from CRM…';
+
+                try {
+                    var res = await fetch('/api/demo/crm-sync', { method: 'POST' });
+                    var data = await res.json();
+
+                    if (data.success) {
+                        showToast('success', 'CRM Sync Complete',
+                            data.message || ('Synced ' + data.opportunitiesFetched + ' opportunities'));
+                    } else {
+                        showToast('error', 'CRM Sync Failed', data.error || 'Unknown error');
+                    }
+                } catch (err) {
+                    showToast('error', 'Network Error', 'Failed to connect to CRM sync endpoint.');
+                }
+
+                crmSyncBtn.disabled = false;
+                crmSyncBtn.innerHTML = '<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>Sync from CRM';
             });
         })();
     </script>
