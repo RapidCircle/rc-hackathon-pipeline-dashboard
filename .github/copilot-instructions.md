@@ -377,3 +377,34 @@ Work is complete **only when**:
 
 **This file only defines GitHub Actions execution overrides.**\
 **All other behaviour is inherited from the primary instruction set.**
+
+------------------------------------------------------------------------
+
+# CRM Integration (Dynamics 365)
+
+This project has a **live connection to Dynamics 365 CRM**. Key details:
+
+## CRM Configuration
+- **CRM URL:** `https://org597d21d4.crm.dynamics.com`
+- **Custom field:** `new_OpportunityType` (OptionSet: 100000000=CE, 100000001=MS)
+- **55 opportunities** seeded in CRM (30 CE + 25 MS)
+- **Authentication:** OAuth2 client credentials via `Microsoft.Identity.Client`
+- **Environment variables:** `CRM_URL`, `CRM_TENANT_ID`, `CRM_CLIENT_ID`, `CRM_CLIENT_SECRET`
+
+## CRM Sync Endpoint
+- `POST /api/demo/crm-sync` — Fetches all opportunities with `new_OpportunityType` set, creates pipeline snapshots and movements for the current week
+
+## Key CRM File
+- `api/Services/CrmSyncService.cs` — OAuth token acquisition, D365 Web API calls, data mapping
+
+## Opportunity Type Mapping
+```
+D365 OptionSet Value  →  App Value
+100000000             →  SystemIntegrationCE
+100000001             →  ManagedServices
+```
+
+## Weighted Revenue Calculation
+```
+WeightedRevenue = EstimatedValue × (CloseProbability / 100)
+```
