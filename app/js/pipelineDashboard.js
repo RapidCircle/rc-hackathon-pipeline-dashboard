@@ -162,6 +162,12 @@ function setLoading(show) {
     if (loader) {
         loader.classList.toggle('hidden', !show);
     }
+    // Hide charts while loading
+    if (show) {
+        if (window.hideCharts) {
+            window.hideCharts();
+        }
+    }
 }
 
 /* ------------------------------------------------------------------ */
@@ -402,26 +408,7 @@ function renderMovementBreakdown(typeSummaries) {
 /**
  * Reset all summary card values to dash placeholders and clear movement breakdown.
  */
-function resetSummary() {
-    var ids = [
-        'ce-start', 'ce-end', 'ce-net',
-        'ms-start', 'ms-end', 'ms-net',
-        'total-start', 'total-end', 'total-net'
-    ];
-    for (var i = 0; i < ids.length; i++) {
-        var el = document.getElementById(ids[i]);
-        if (el) {
-            el.textContent = '—';
-            el.classList.remove('text-success', 'text-error');
-        }
-    }
-    // Clear movement breakdown
-    var container = document.getElementById('movement-breakdown-container');
-    if (container) container.innerHTML = '';
-
-    var emptyState = document.getElementById('empty-state');
-    if (emptyState) emptyState.classList.remove('hidden');
-}
+function resetSummary() {\n    var ids = [\n        'ce-start', 'ce-end', 'ce-net',\n        'ms-start', 'ms-end', 'ms-net',\n        'total-start', 'total-end', 'total-net'\n    ];\n    for (var i = 0; i < ids.length; i++) {\n        var el = document.getElementById(ids[i]);\n        if (el) {\n            el.textContent = '—';\n            el.classList.remove('text-success', 'text-error');\n        }\n    }\n    // Clear movement breakdown\n    var container = document.getElementById('movement-breakdown-container');\n    if (container) container.innerHTML = '';\n\n    // Clear movement summary\n    var summaryContainer = document.getElementById('movement-summary-container');\n    if (summaryContainer) summaryContainer.innerHTML = '';\n\n    // Hide charts section\n    if (window.hideCharts) {\n        window.hideCharts();\n    }\n\n    var emptyState = document.getElementById('empty-state');\n    if (emptyState) emptyState.classList.remove('hidden');\n}
 
 /* ------------------------------------------------------------------ */
 /*  API fetch                                                          */
@@ -484,6 +471,18 @@ async function fetchWeeklyReport(weekStart) {
         _lastSuccessfulWeek = weekStart;
         renderSummary(data);
         renderMovementBreakdown(data.typeSummaries);
+        
+        // Cache opportunities and initialize owner filter
+        var allOpps = flattenOpportunities(data);
+        initializeOwnerFilter(allOpps);
+        window._currentOpportunitiesCache = allOpps;
+        window._lastApiData = data;
+        
+        // Render charts with all opportunities
+        if (window.renderAllCharts) {
+            window.renderAllCharts(data, allOpps);
+        }
+        
         updateLatestWeekButton();
     } catch (err) {
         showStatusMessage('Unable to reach the server. Please check your connection and try again.', 'error');
@@ -547,6 +546,21 @@ function initWeekSelector() {
             if (_lastSuccessfulWeek && weekInput) {
                 weekInput.value = _lastSuccessfulWeek;
                 fetchWeeklyReport(_lastSuccessfulWeek);
+            }
+        });
+    }
+
+    // Owner filter dropdown event listener
+    var ownerSelect = document.getElementById('owner-filter-select');
+    if (ownerSelect) {
+        ownerSelect.addEventListener('change', function() {
+            var selectedOwner = this.value || null;
+            var allOpps = window._currentOpportunitiesCache || [];
+            var filtered = filterByOwner(allOpps, selectedOwner);
+            
+            // Re-render charts with filtered opportunities
+            if (window.renderAllCharts && window._lastApiData) {
+                window.renderAllCharts(window._lastApiData, filtered);
             }
         });
     }
