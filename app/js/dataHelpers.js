@@ -17,8 +17,17 @@ function flattenOpportunities(reportData) {
         typeSummary.movementCategories.forEach(function(category) {
             if (!category.opportunities) return;
             category.opportunities.forEach(function(opp) {
-                opp._opportunityType = typeSummary.opportunityType; // Tag with type
-                opp._category = category.category; // Tag with category
+                // Normalize fields with safe fallbacks
+                opp.ownerName = opp.ownerName || opp.owner || opp.opportunityOwner || '';
+                opp.customerName = opp.customerName || opp.customer || opp.accountName || '';
+                opp.opportunityTitle = opp.opportunityTitle || opp.title || opp.name || '';
+                opp.finalSalesStage = opp.finalSalesStage || opp.finalStage || opp.stage || opp.salesStage || '';
+                opp.weightedRevenueChange = opp.weightedRevenueChange != null ? opp.weightedRevenueChange
+                    : (opp.weightedRevenue != null ? opp.weightedRevenue
+                    : (opp.amount != null ? opp.amount
+                    : (opp.changeAmount != null ? opp.changeAmount : 0)));
+                opp._opportunityType = typeSummary.opportunityType || opp.opportunityType || opp.type || opp._opportunityType || '';
+                opp._category = category.category;
                 allOpps.push(opp);
             });
         });
@@ -50,6 +59,30 @@ function filterByOwner(opportunities, ownerFilter) {
     return opportunities.filter(function(opp) {
         return opp.ownerName === ownerFilter;
     });
+}
+
+/**
+ * Filter opportunities by opportunity type.
+ * @param {Array} opportunities
+ * @param {string|null} typeFilter — type key or null for all
+ * @returns {Array}
+ */
+function filterByType(opportunities, typeFilter) {
+    if (!typeFilter) return opportunities;
+    return opportunities.filter(function(opp) {
+        return opp._opportunityType === typeFilter;
+    });
+}
+
+/**
+ * Initialize opportunity type filter dropdown.
+ * @param {Array} opportunities
+ */
+function initializeTypeFilter(opportunities) {
+    var typeSelect = document.getElementById('opportunity-type-filter');
+    if (!typeSelect) return;
+    // Options are static; just reset to 'All Types' on new data load
+    typeSelect.value = '';
 }
 
 /**
@@ -289,8 +322,10 @@ function getChartDataWaterfall(opportunities, apiData) {
 window.exportCurrentData = function() {
     var cached = window._currentOpportunitiesCache || [];
     var ownerFilter = document.getElementById('owner-filter-select');
+    var typeFilter = document.getElementById('opportunity-type-filter');
     var selectedOwner = ownerFilter ? ownerFilter.value : null;
+    var selectedType = typeFilter ? typeFilter.value : null;
     var filtered = filterByOwner(cached, selectedOwner);
-    
+    filtered = filterByType(filtered, selectedType);
     exportToCSV(filtered, 'pipeline-opportunities-' + new Date().toISOString().split('T')[0] + '.csv');
 };

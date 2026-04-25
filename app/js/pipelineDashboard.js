@@ -408,7 +408,30 @@ function renderMovementBreakdown(typeSummaries) {
 /**
  * Reset all summary card values to dash placeholders and clear movement breakdown.
  */
-function resetSummary() {\n    var ids = [\n        'ce-start', 'ce-end', 'ce-net',\n        'ms-start', 'ms-end', 'ms-net',\n        'total-start', 'total-end', 'total-net'\n    ];\n    for (var i = 0; i < ids.length; i++) {\n        var el = document.getElementById(ids[i]);\n        if (el) {\n            el.textContent = '—';\n            el.classList.remove('text-success', 'text-error');\n        }\n    }\n    // Clear movement breakdown\n    var container = document.getElementById('movement-breakdown-container');\n    if (container) container.innerHTML = '';\n\n    // Clear movement summary\n    var summaryContainer = document.getElementById('movement-summary-container');\n    if (summaryContainer) summaryContainer.innerHTML = '';\n\n    // Hide charts section\n    if (window.hideCharts) {\n        window.hideCharts();\n    }\n\n    var emptyState = document.getElementById('empty-state');\n    if (emptyState) emptyState.classList.remove('hidden');\n}
+function resetSummary() {
+    var ids = [
+        'ce-start', 'ce-end', 'ce-net',
+        'ms-start', 'ms-end', 'ms-net',
+        'total-start', 'total-end', 'total-net'
+    ];
+    for (var i = 0; i < ids.length; i++) {
+        var el = document.getElementById(ids[i]);
+        if (el) {
+            el.textContent = '\u2014';
+            el.classList.remove('text-success', 'text-error');
+        }
+    }
+    var container = document.getElementById('movement-breakdown-container');
+    if (container) container.innerHTML = '';
+
+    var summaryContainer = document.getElementById('movement-summary-container');
+    if (summaryContainer) summaryContainer.innerHTML = '';
+
+    if (window.hideCharts) window.hideCharts();
+
+    var emptyState = document.getElementById('empty-state');
+    if (emptyState) emptyState.classList.remove('hidden');
+}
 
 /* ------------------------------------------------------------------ */
 /*  API fetch                                                          */
@@ -475,6 +498,7 @@ async function fetchWeeklyReport(weekStart) {
         // Cache opportunities and initialize owner filter
         var allOpps = flattenOpportunities(data);
         initializeOwnerFilter(allOpps);
+        initializeTypeFilter(allOpps);
         window._currentOpportunitiesCache = allOpps;
         window._lastApiData = data;
         
@@ -554,14 +578,37 @@ function initWeekSelector() {
     var ownerSelect = document.getElementById('owner-filter-select');
     if (ownerSelect) {
         ownerSelect.addEventListener('change', function() {
-            var selectedOwner = this.value || null;
             var allOpps = window._currentOpportunitiesCache || [];
+            var selectedOwner = this.value || null;
+            var selectedType = (document.getElementById('opportunity-type-filter') || {}).value || null;
             var filtered = filterByOwner(allOpps, selectedOwner);
-            
-            // Re-render charts with filtered opportunities
+            filtered = filterByType(filtered, selectedType);
             if (window.renderAllCharts && window._lastApiData) {
                 window.renderAllCharts(window._lastApiData, filtered);
             }
+        });
+    }
+
+    // Opportunity type filter event listener
+    var typeSelect = document.getElementById('opportunity-type-filter');
+    if (typeSelect) {
+        typeSelect.addEventListener('change', function() {
+            var allOpps = window._currentOpportunitiesCache || [];
+            var selectedOwner = (document.getElementById('owner-filter-select') || {}).value || null;
+            var selectedType = this.value || null;
+            var filtered = filterByOwner(allOpps, selectedOwner);
+            filtered = filterByType(filtered, selectedType);
+            if (window.renderAllCharts && window._lastApiData) {
+                window.renderAllCharts(window._lastApiData, filtered);
+            }
+        });
+    }
+
+    // Export CSV button
+    var exportBtn = document.getElementById('export-csv-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function() {
+            if (window.exportCurrentData) window.exportCurrentData();
         });
     }
 

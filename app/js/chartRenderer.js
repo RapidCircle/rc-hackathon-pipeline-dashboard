@@ -149,9 +149,10 @@ function renderTypeSplitChart(opportunities) {
 
     var typeData = getChartDataTypeSplit(opportunities);
     var total = typeData.ce + typeData.ms;
+    var isEmpty = total === 0;
 
     // Handle empty state
-    if (total === 0) {
+    if (isEmpty) {
         typeData.ce = 1;
         typeData.ms = 1;
     }
@@ -178,13 +179,11 @@ function renderTypeSplitChart(opportunities) {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            var label = context.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
+                            if (isEmpty) return context.label || '';
+                            var label = (context.label || '') + ': ';
                             var value = context.parsed || 0;
                             var percentage = ((value / total) * 100).toFixed(1);
-                            return label + '€' + value.toLocaleString('en-IE') + ' (' + percentage + '%)';
+                            return label + '\u20ac' + value.toLocaleString('en-IE') + ' (' + percentage + '%)';
                         }
                     }
                 }
@@ -342,18 +341,12 @@ function renderWaterfallChart(reportData, opportunities) {
  * @param {Array} opportunities - Flattened opportunity array (from filterByOwner or flattenOpportunities)
  */
 function renderAllCharts(reportData, opportunities) {
-    if (!opportunities || opportunities.length === 0) {
-        console.warn('No opportunities to render charts');
-        return;
-    }
+    opportunities = opportunities || [];
 
     // Show charts section
     var chartsSection = document.getElementById('charts-section');
-    if (chartsSection) {
-        chartsSection.classList.remove('hidden');
-    }
+    if (chartsSection) chartsSection.classList.remove('hidden');
 
-    // Render summary cards and charts
     renderMovementSummaryCards(opportunities);
     renderMovementBarChart(opportunities);
     renderTypeSplitChart(opportunities);
